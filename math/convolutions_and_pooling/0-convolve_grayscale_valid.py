@@ -1,35 +1,48 @@
-lid Convolution"""
-
+#!/usr/bin/env python3
+"""
+This module for a function to perform a valid convolution on grayscale images.
+A batch of grayscale images and 
+a kernel, and it returns the convolved output for each image.
+"""
 
 import numpy as np
 
 
 def convolve_grayscale_valid(images, kernel):
-    """Performs a valid convolution on grayscale images:
+    """
+    Performs a valid convolution on grayscale images.
 
-    images is a numpy.ndarray with shape (m, h, w) containing multiple
-    grayscale images
-        m is the number of images
-        h is the height in pixels of the images
-        w is the width in pixels of the images
-    kernel is a numpy.ndarray with shape (kh, kw) containing the kernel
-    for the convolution
-        kh is the height of the kernel
-        kw is the width of the kernel
+    Args:
+    images (numpy.ndarray): Shape (m, h, w) containing multiple grayscale images.
+        - m is the number of images
+        - h is the height in pixels of the images
+        - w is the width in pixels of the images
+    kernel (numpy.ndarray): Shape (kh, kw) containing the kernel for the convolution.
+        - kh is the height of the kernel
+        - kw is the width of the kernel
 
-    Returns: a numpy.ndarray containing the convolved images"""
+    Returns:
+    numpy.ndarray: Containing the convolved images.
+    """
+
+    # Get the dimensions of images and kernel
     m, h, w = images.shape
     kh, kw = kernel.shape
 
-    ih, iw = (h - kh) + 1, (w - kw) + 1
+    # Calculate the dimensions of the output after valid convolution
+    output_h = h - kh + 1
+    output_w = w - kw + 1
 
-    cImage = np.zeros(shape=(m, ih, iw))
+    # Initialize the output array with zeros
+    output = np.zeros((m, output_h, output_w))
 
-    for y in range(ih):
-        for x in range(iw):
-            y0 = y + kh
-            x0 = x + kw
-            cImage[:, y, x] = np.sum(images[:, y:y0, x:x0] * kernel[...],
-                                     axis=(1, 2))
+    # Perform convolution on each image
+    for i in range(m):  # Loop over each image
+        for x in range(output_h):  # Loop over the output height
+            for y in range(output_w):  # Loop over the output width
+                # Extract the current region of the image and apply the kernel
+                region = images[i, x:x + kh, y:y + kw]
+                output[i, x, y] = np.sum(region * kernel)
 
-    return cImage
+    return output
+
