@@ -1,5 +1,6 @@
-
-n def update_variables_RMSProp(alpha, beta2, epsilon, var, grad, s):
+#!/usr/bin/env python3
+"""
+    function def update_variables_RMSProp(alpha, beta2, epsilon, var, grad, s):
     that updates a variable using the RMSProp optimization algorithm:
 """
 
