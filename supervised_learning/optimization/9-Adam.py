@@ -1,4 +1,5 @@
-dam optimization algorithm
+#!/usr/bin/env python3
+""" Adam optimization algorithm
 """
 
 
