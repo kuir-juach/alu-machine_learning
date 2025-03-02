@@ -6,24 +6,32 @@ ordered by the number of launches in descending order or,
 if rockets have the same amount of launches, in alphabetical order
 """
 
-
 import requests
 
+def fetch_data(url):
+    """Fetch JSON data from a given URL."""
+    response = requests.get(url)
+    response.raise_for_status()  # Ensures the request was successful
+    return response.json()
 
 if __name__ == "__main__":
-    url = 'https://api.spacexdata.com/v4/launches'
-    results = requests.get(url).json()
-    rocketDict = {}
-    for launch in results:
-        rocket = launch.get('rocket')
-        url = 'https://api.spacexdata.com/v4/rockets/{}'.format(rocket)
-        results = requests.get(url).json()
-        rocket = results.get('name')
-        if rocketDict.get(rocket) is None:
-            rocketDict[rocket] = 1
-        else:
-            rocketDict[rocket] += 1
-    rocketList = sorted(rocketDict.items(), key=lambda kv: kv[0])
-    rocketList = sorted(rocketList, key=lambda kv: kv[1], reverse=True)
-    for rocket in rocketList:
-        print("{}: {}".format(rocket[0], rocket[1]))
+    # Fetch all launches and rockets once to minimize API calls
+    launches_url = 'https://api.spacexdata.com/v4/launches'
+    rockets_url = 'https://api.spacexdata.com/v4/rockets'
+
+    launches = fetch_data(launches_url)
+    rockets_data = {rocket["id"]: rocket["name"] for rocket in fetch_data(rockets_url)}
+
+    # Count launches per rocket
+    rocket_launch_count = {}
+    for launch in launches:
+        rocket_name = rockets_data.get(launch.get('rocket'), "Unknown Rocket")
+        rocket_launch_count[rocket_name] = rocket_launch_count.get(rocket_name, 0) + 1
+
+    # Sort: First by number of launches (descending), then alphabetically
+    sorted_rockets = sorted(rocket_launch_count.items(), key=lambda x: (-x[1], x[0]))
+
+    # Print results
+    for rocket, count in sorted_rockets:
+        print(f"{rocket}: {count}")
+
