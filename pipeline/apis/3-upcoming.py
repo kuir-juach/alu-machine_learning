@@ -1,31 +1,38 @@
 #!/usr/bin/env python3
-"""Displays the upcoming launch with these information"""
+"""Displays the upcoming SpaceX launch details in the required format."""
+
 import requests
 from datetime import datetime
 
+def fetch_data(url):
+    """Fetch JSON data from the given URL."""
+    response = requests.get(url)
+    response.raise_for_status()  # Raise an error if the request fails
+    return response.json()
 
 if __name__ == '__main__':
-    """Displays the upcoming launch with these information"""
     url = "https://api.spacexdata.com/v4/launches/upcoming"
-    r = requests.get(url)
-    recent = 0
+    launches = fetch_data(url)
 
-    for dic in r.json():
-        new = int(dic["date_unix"])
-        if recent == 0 or new < recent:
-            recent = new
-            launch_name = dic["name"]
-            date = dic["date_local"]
-            rocket_number = dic["rocket"]
-            launch_number = dic["launchpad"]
+    # Find the next launch based on the earliest date_unix
+    next_launch = min(launches, key=lambda x: x["date_unix"])
 
-    rurl = "https://api.spacexdata.com/v4/rockets/" + rocket_number
-    rocket_name = requests.get(rurl).json()["name"]
-    lurl = "https://api.spacexdata.com/v4/launchpads/" + launch_number
-    launchpad = requests.get(lurl)
-    launchpad_name = launchpad.json()["name"]
-    launchpad_local = launchpad.json()["locality"]
-    string = "{} ({}) {} - {} ({})".format(launch_name, date, rocket_name,
-                                           launchpad_name, launchpad_local)
+    # Extract relevant details
+    launch_name = next_launch["name"]
+    date = next_launch["date_local"]  # Already formatted in expected format
+    rocket_id = next_launch["rocket"]
+    launchpad_id = next_launch["launchpad"]
 
-    print(string)
+    # Fetch rocket details
+    rocket_name = fetch_data(f"https://api.spacexdata.com/v4/rockets/{rocket_id}")["name"]
+
+    # Fetch launchpad details
+    launchpad_data = fetch_data(f"https://api.spacexdata.com/v4/launchpads/{launchpad_id}")
+    launchpad_name = launchpad_data["name"]
+    launchpad_locality = launchpad_data["locality"]
+
+    # Final output format
+    output = f"{launch_name} ({date}) {rocket_name} - {launchpad_name} ({launchpad_locality})"
+    
+    print(output)
+
